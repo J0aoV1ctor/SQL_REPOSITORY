@@ -1,0 +1,118 @@
+-- CLIENTE (base)
+CREATE TABLE clientes (
+    id_cliente INT PRIMARY KEY AUTO_INCREMENT,
+    tipo ENUM('PF', 'PJ') NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    senha VARCHAR(255) NOT NULL,
+    telefone VARCHAR(20),
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- CLIENTE PESSOA FÍSICA
+CREATE TABLE clientes_pf (
+    id_cliente INT PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    cpf VARCHAR(14) UNIQUE NOT NULL,
+    data_nascimento DATE,
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
+);
+
+-- CLIENTE PESSOA JURÍDICA
+CREATE TABLE clientes_pj (
+    id_cliente INT PRIMARY KEY,
+    razao_social VARCHAR(150) NOT NULL,
+    cnpj VARCHAR(18) UNIQUE NOT NULL,
+    nome_fantasia VARCHAR(150),
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
+);
+
+-- ENDEREÇOS
+CREATE TABLE enderecos (
+    id_endereco INT PRIMARY KEY AUTO_INCREMENT,
+    id_cliente INT,
+    rua VARCHAR(150),
+    numero VARCHAR(10),
+    cidade VARCHAR(100),
+    estado VARCHAR(50),
+    cep VARCHAR(15),
+    complemento VARCHAR(100),
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
+);
+
+-- FORMAS DE PAGAMENTO (catálogo)
+CREATE TABLE formas_pagamento (
+    id_forma INT PRIMARY KEY AUTO_INCREMENT,
+    descricao VARCHAR(50) -- Ex: Cartão, Pix, Boleto
+);
+
+-- PAGAMENTOS DO CLIENTE (carteira)
+CREATE TABLE cliente_pagamentos (
+    id_pagamento INT PRIMARY KEY AUTO_INCREMENT,
+    id_cliente INT,
+    id_forma INT,
+    detalhes TEXT, -- ex: últimos dígitos do cartão
+    ativo BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),
+    FOREIGN KEY (id_forma) REFERENCES formas_pagamento(id_forma)
+);
+
+-- CATEGORIAS
+CREATE TABLE categorias (
+    id_categoria INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(100) NOT NULL
+);
+
+-- PRODUTOS
+CREATE TABLE produtos (
+    id_produto INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(150) NOT NULL,
+    descricao TEXT,
+    preco DECIMAL(10,2) NOT NULL,
+    estoque INT DEFAULT 0,
+    id_categoria INT,
+    FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria)
+);
+
+-- PEDIDOS
+CREATE TABLE pedidos (
+    id_pedido INT PRIMARY KEY AUTO_INCREMENT,
+    id_cliente INT,
+    data_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(50),
+    valor_total DECIMAL(10,2),
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
+);
+
+-- ITENS DO PEDIDO
+CREATE TABLE itens_pedido (
+    id_item INT PRIMARY KEY AUTO_INCREMENT,
+    id_pedido INT,
+    id_produto INT,
+    quantidade INT NOT NULL,
+    preco_unitario DECIMAL(10,2),
+    FOREIGN KEY (id_pedido) REFERENCES pedidos(id_pedido),
+    FOREIGN KEY (id_produto) REFERENCES produtos(id_produto)
+);
+
+-- PAGAMENTO DO PEDIDO
+CREATE TABLE pagamentos (
+    id_pagamento INT PRIMARY KEY AUTO_INCREMENT,
+    id_pedido INT,
+    id_cliente_pagamento INT, -- referência à carteira
+    valor DECIMAL(10,2),
+    status VARCHAR(50),
+    data_pagamento TIMESTAMP,
+    FOREIGN KEY (id_pedido) REFERENCES pedidos(id_pedido),
+    FOREIGN KEY (id_cliente_pagamento) REFERENCES cliente_pagamentos(id_pagamento)
+);
+
+-- ENTREGA
+CREATE TABLE entregas (
+    id_entrega INT PRIMARY KEY AUTO_INCREMENT,
+    id_pedido INT,
+    status VARCHAR(50), -- Ex: Em transporte, Entregue
+    codigo_rastreio VARCHAR(100),
+    data_envio TIMESTAMP,
+    data_entrega TIMESTAMP,
+    FOREIGN KEY (id_pedido) REFERENCES pedidos(id_pedido)
+);
