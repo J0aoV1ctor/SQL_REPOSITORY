@@ -1,0 +1,72 @@
+-- CLIENTES
+CREATE TABLE clientes (
+    id_cliente INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(150) NOT NULL,
+    telefone VARCHAR(20),
+    email VARCHAR(150),
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- VEÍCULOS
+CREATE TABLE veiculos (
+    id_veiculo INT PRIMARY KEY AUTO_INCREMENT,
+    id_cliente INT,
+    marca VARCHAR(100),
+    modelo VARCHAR(100),
+    placa VARCHAR(10) UNIQUE,
+    ano INT,
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)
+);
+
+-- MECÂNICOS
+CREATE TABLE mecanicos (
+    id_mecanico INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(150) NOT NULL,
+    especialidade VARCHAR(100)
+);
+
+-- EQUIPES (grupo de mecânicos) 
+CREATE TABLE equipes (
+    id_equipe INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(100)
+);
+
+-- RELAÇÃO EQUIPE x MECÂNICO (N:N)
+CREATE TABLE equipe_mecanicos (
+    id_equipe INT,
+    id_mecanico INT,
+    PRIMARY KEY (id_equipe, id_mecanico),
+    FOREIGN KEY (id_equipe) REFERENCES equipes(id_equipe),
+    FOREIGN KEY (id_mecanico) REFERENCES mecanicos(id_mecanico)
+);
+
+-- ORDENS DE SERVIÇO (OS)
+CREATE TABLE ordens_servico (
+    id_os INT PRIMARY KEY AUTO_INCREMENT,
+    id_veiculo INT,
+    id_equipe INT,
+    data_abertura TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_entrega DATE,
+    status VARCHAR(50),
+    observacoes TEXT,
+    FOREIGN KEY (id_veiculo) REFERENCES veiculos(id_veiculo),
+    FOREIGN KEY (id_equipe) REFERENCES equipes(id_equipe)
+);
+
+-- SERVIÇOS (catálogo)
+CREATE TABLE servicos (
+    id_servico INT PRIMARY KEY AUTO_INCREMENT,
+    descricao VARCHAR(150),
+    valor_base DECIMAL(10,2)
+);
+
+-- ITENS DA ORDEM DE SERVIÇO
+CREATE TABLE itens_os (
+    id_item INT PRIMARY KEY AUTO_INCREMENT,
+    id_os INT,
+    id_servico INT,
+    quantidade INT DEFAULT 1,
+    valor DECIMAL(10,2),
+    FOREIGN KEY (id_os) REFERENCES ordens_servico(id_os),
+    FOREIGN KEY (id_servico) REFERENCES servicos(id_servico)
+);
